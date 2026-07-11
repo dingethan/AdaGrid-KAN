@@ -227,19 +227,25 @@ if refined:
 ```
 AdaGrid-KAN/
 ├── src/
-│   ├── kan_layer.py
-│   └── grid_scheduler.py         # ExtendGridOnPlateau + EcoGrowScheduler
+│   ├── __init__.py               # public API exports
+│   ├── kan_layer.py              # DynamicKANLayer
+│   └── grid_scheduler.py        # ExtendGridOnPlateau + EcoGrowScheduler
 ├── examples/
 │   ├── toy_regression.py
 │   ├── ab_comparison.py
 │   └── ecogrow_comparison.py
 ├── tests/
-│   └── test_ecogrow_scheduler.py
+│   ├── test_kan_layer.py         # DynamicKANLayer unit tests
+│   └── test_ecogrow_scheduler.py # EcoGrowScheduler unit tests
 ├── docs/images/
 │   ├── ecogrow_comparison.png
 │   └── ecogrow_training_history.png
 ├── visualization/
 │   └── ecogrow_live_comparison.html
+├── .github/workflows/
+│   └── ci.yml                   # GitHub Actions CI (Python 3.10/3.11/3.12)
+├── LICENSE
+├── pyproject.toml
 └── requirements.txt
 ```
 
@@ -515,19 +521,25 @@ if refined:
 ```
 AdaGrid-KAN/
 ├── src/
-│   ├── kan_layer.py
-│   └── grid_scheduler.py         # ExtendGridOnPlateau + EcoGrowScheduler
+│   ├── __init__.py               # 公共 API 导出
+│   ├── kan_layer.py              # DynamicKANLayer
+│   └── grid_scheduler.py        # ExtendGridOnPlateau + EcoGrowScheduler
 ├── examples/
 │   ├── toy_regression.py
 │   ├── ab_comparison.py
 │   └── ecogrow_comparison.py
 ├── tests/
-│   └── test_ecogrow_scheduler.py
+│   ├── test_kan_layer.py         # DynamicKANLayer 单元测试
+│   └── test_ecogrow_scheduler.py # EcoGrowScheduler 单元测试
 ├── docs/images/
 │   ├── ecogrow_comparison.png
 │   └── ecogrow_training_history.png
 ├── visualization/
 │   └── ecogrow_live_comparison.html
+├── .github/workflows/
+│   └── ci.yml                   # GitHub Actions CI（Python 3.10/3.11/3.12）
+├── LICENSE
+├── pyproject.toml
 └── requirements.txt
 ```
 
