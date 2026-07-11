@@ -450,6 +450,73 @@ class EcoGrowScheduler:
     def num_blocked(self) -> int:
         return sum(1 for e in self.events if e["decision"] == "blocked")
 
+    def state_dict(self) -> Dict[str, Any]:
+        """
+        返回调度器的完整状态字典，可配合 load_state_dict 实现断点续训。
+
+        注意：backup_model 不在 state_dict 内（模型权重请用 torch.save 单独保存）。
+        若在 trial 阶段保存检查点，加载后需手动恢复 backup_model 引用。
+        """
+        return {
+            "state": self.state,
+            "best_loss": self.best_loss,
+            "num_bad_epochs": self.num_bad_epochs,
+            "_at_max_warned": self._at_max_warned,
+            "grid_before": self.grid_before,
+            "params_before": self.params_before,
+            "val_loss_before": self.val_loss_before,
+            "best_trial_val_loss": self.best_trial_val_loss,
+            "trial_start_epoch": self.trial_start_epoch,
+            "trial_epochs_elapsed": self.trial_epochs_elapsed,
+            "cooldown_remaining": self.cooldown_remaining,
+            "events": list(self.events),
+            "rejected_growths": [list(pair) for pair in self.rejected_growths],
+            "growth_exhausted": self.growth_exhausted,
+            "_blocked_events_recorded": [
+                list(pair) for pair in self._blocked_events_recorded
+            ],
+        }
+
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        """
+        从 state_dict 恢复调度器状态。
+
+        参数:
+            state_dict: 由 state_dict() 返回的字典
+        """
+        self.state = state_dict["state"]
+        self.best_loss = state_dict["best_loss"]
+        self.num_bad_epochs = state_dict["num_bad_epochs"]
+        self._at_max_warned = state_dict["_at_max_warned"]
+        self.grid_before = state_dict["grid_before"]
+        self.params_before = state_dict["params_before"]
+        self.val_loss_before = state_dict["val_loss_before"]
+        self.best_trial_val_loss = state_dict["best_trial_val_loss"]
+        self.trial_start_epoch = state_dict["trial_start_epoch"]
+        self.trial_epochs_elapsed = state_dict["trial_epochs_elapsed"]
+        self.cooldown_remaining = state_dict["cooldown_remaining"]
+        self.events = list(state_dict["events"])
+        self.rejected_growths = {
+            tuple(pair) for pair in state_dict["rejected_growths"]
+        }
+        self.growth_exhausted = state_dict["growth_exhausted"]
+        self._blocked_events_recorded = {
+            tuple(pair) for pair in state_dict["_blocked_events_recorded"]
+        }
+
+    def __repr__(self) -> str:
+        return (
+            f"EcoGrowScheduler("
+            f"state={self.state!r}, "
+            f"grid={self._primary_grid_size()}, "
+            f"patience={self.patience}, "
+            f"trial_epochs={self.trial_epochs}, "
+            f"max_grid={self.max_grid}, "
+            f"accepted={self.num_accepted}, "
+            f"rejected={self.num_rejected}, "
+            f"blocked={self.num_blocked})"
+        )
+
 
 class ExtendGridOnPlateau:
     """
@@ -477,8 +544,15 @@ class ExtendGridOnPlateau:
                 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     """
 
-    def __init__(self, model, patience=8, max_grid=50, verbose=True,
-                 min_delta=1e-8, min_delta_rel=0.005):
+    def __init__(
+        self,
+        model: nn.Module,
+        patience: int = 8,
+        max_grid: int = 50,
+        verbose: bool = True,
+        min_delta: float = 1e-8,
+        min_delta_rel: float = 0.005,
+    ) -> None:
         self.model = model
         self.patience = patience
         self.max_grid = max_grid
@@ -486,14 +560,14 @@ class ExtendGridOnPlateau:
         self.min_delta = min_delta
         self.min_delta_rel = min_delta_rel
 
-        self.best_loss = float('inf')
-        self.num_bad_epochs = 0
-        self.refine_history = []   # [(epoch, old_g, new_g), ...]
-        self._at_max_warned = False
+        self.best_loss: float = float('inf')
+        self.num_bad_epochs: int = 0
+        self.refine_history: List[tuple] = []   # [(epoch, old_g, new_g), ...]
+        self._at_max_warned: bool = False
 
         self._kan_layers = self._find_kan_layers(model)
 
-    def _find_kan_layers(self, model):
+    def _find_kan_layers(self, model: nn.Module) -> List[DynamicKANLayer]:
         layers = []
         for module in model.modules():
             if isinstance(module, DynamicKANLayer):
@@ -502,10 +576,10 @@ class ExtendGridOnPlateau:
             raise ValueError("No DynamicKANLayer found in the model.")
         return layers
 
-    def _all_at_max(self):
+    def _all_at_max(self) -> bool:
         return all(layer.grid_size >= self.max_grid for layer in self._kan_layers)
 
-    def step(self, current_loss, epoch=None):
+    def step(self, current_loss: float, epoch: Optional[int] = None):
         """
         每个 epoch 结束时调用。
 
@@ -567,8 +641,18 @@ class ExtendGridOnPlateau:
             'at_max_warned': self._at_max_warned,
         }
 
-    def load_state_dict(self, state_dict):
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
         self.best_loss = state_dict['best_loss']
         self.num_bad_epochs = state_dict['num_bad_epochs']
         self.refine_history = state_dict['refine_history']
         self._at_max_warned = state_dict.get('at_max_warned', False)
+
+    def __repr__(self) -> str:
+        current_g = self._kan_layers[0].grid_size if self._kan_layers else '?'
+        return (
+            f"ExtendGridOnPlateau("
+            f"grid={current_g}, "
+            f"patience={self.patience}, "
+            f"max_grid={self.max_grid}, "
+            f"refinements={len(self.refine_history)})"
+        )
