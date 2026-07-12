@@ -24,6 +24,8 @@ dependencies = [
     "torch>=2.0",
     "numpy>=1.21",
     "matplotlib>=3.5",
+    "fastapi>=0.110",
+    "uvicorn>=0.27",
 ]
 
 [project.optional-dependencies]
