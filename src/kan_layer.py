@@ -25,7 +25,7 @@ class DynamicKANLayer(nn.Module):
         in_dim:  输入维度
         out_dim: 输出维度
         grid_size: 初始网格区间数（默认 3，极度稀疏）
-        spline_order: B-Spline 阶数（默认 3，即二次样条）
+        spline_order: B-Spline 阶数（默认 3，即三次样条）
         grid_range: 输入归一化范围（默认 [-1, 1]）
     """
 
@@ -280,7 +280,8 @@ class DynamicKANLayer(nn.Module):
         new_knots = torch.tensor(new_knots_list, device=device, dtype=dtype)
 
         # ---- 4. 生成新的 grid（去 clamped 端点后的内部唯一节点） ----
-        interior = new_knots[k : -k + 1]  # 内部网格点（含重复的边界点）
+        # 使用显式长度计算代替 -k+1，避免 k=1 时 -k+1=0 导致空切片
+        interior = new_knots[k : len(new_knots) - k + 1]
         unique = []
         for v in interior.tolist():
             if not unique or abs(v - unique[-1]) > 1e-10:
@@ -429,6 +430,12 @@ class DynamicKANLayer(nn.Module):
 
             return avg, grid
 
+    @property
+    def n_params(self) -> int:
+        """返回该层的可训练参数总数（control_points + base_weight）。"""
+        return sum(p.numel() for p in self.parameters() if p.requires_grad)
+
     def extra_repr(self) -> str:
         return (f'in_dim={self.in_dim}, out_dim={self.out_dim}, '
-                f'grid_size={self.grid_size}, spline_order={self.spline_order}')
+                f'grid_size={self.grid_size}, spline_order={self.spline_order}, '
+                f'n_params={self.n_params}')

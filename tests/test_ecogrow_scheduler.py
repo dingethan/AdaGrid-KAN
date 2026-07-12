@@ -305,3 +305,92 @@ class TestInvalidLoss:
         scheduler = EcoGrowScheduler(model, verbose=False)
         with pytest.raises(ValueError, match="Invalid loss"):
             scheduler.step(train_loss=float("nan"), val_loss=0.1, epoch=0)
+
+
+class TestEcoGrowStateDict:
+    """EcoGrowScheduler.state_dict / load_state_dict 测试。"""
+
+    def test_state_dict_roundtrip_normal_state(self):
+        """normal 状态下 state_dict → load_state_dict 能完整恢复。"""
+        model = _make_model(3)
+        scheduler = EcoGrowScheduler(
+            model, patience=3, max_grid=50, trial_epochs=3, verbose=False,
+        )
+        # 驱动几步
+        for epoch in range(4):
+            scheduler.step(train_loss=0.05, val_loss=0.1, epoch=epoch)
+
+        sd = scheduler.state_dict()
+
+        model2 = _make_model(3)
+        scheduler2 = EcoGrowScheduler(
+            model2, patience=3, max_grid=50, trial_epochs=3, verbose=False,
+        )
+        scheduler2.load_state_dict(sd)
+
+        assert scheduler2.state == scheduler.state
+        assert scheduler2.best_loss == scheduler.best_loss
+        assert scheduler2.num_bad_epochs == scheduler.num_bad_epochs
+        assert scheduler2.growth_exhausted == scheduler.growth_exhausted
+        assert scheduler2.rejected_growths == scheduler.rejected_growths
+
+    def test_state_dict_preserves_rejected_growths(self):
+        """拒绝记录在 state_dict 中能被正确序列化与反序列化。"""
+        model = _make_model(24)
+        scheduler = EcoGrowScheduler(
+            model,
+            patience=2,
+            max_grid=50,
+            trial_epochs=2,
+            min_improvement=0.5,
+            min_efficiency=10.0,
+            cooldown_epochs=1,
+            verbose=False,
+        )
+        _drive_to_growth_started(scheduler, model, patience=2)
+        for i in range(2):
+            result = scheduler.step(train_loss=0.05, val_loss=0.10, epoch=100 + i)
+        assert result.action == "growth_rejected"
+
+        sd = scheduler.state_dict()
+        assert [24, 48] in sd["rejected_growths"]
+
+        model2 = _make_model(24)
+        scheduler2 = EcoGrowScheduler(
+            model2, patience=2, max_grid=50, trial_epochs=2,
+            min_improvement=0.5, min_efficiency=10.0, verbose=False,
+        )
+        scheduler2.load_state_dict(sd)
+        assert (24, 48) in scheduler2.rejected_growths
+
+    def test_state_dict_keys_complete(self):
+        """state_dict 包含所有必要字段。"""
+        model = _make_model(3)
+        scheduler = EcoGrowScheduler(model, verbose=False)
+        sd = scheduler.state_dict()
+        required_keys = {
+            "state", "best_loss", "num_bad_epochs", "_at_max_warned",
+            "grid_before", "params_before", "val_loss_before",
+            "best_trial_val_loss", "trial_start_epoch", "trial_epochs_elapsed",
+            "cooldown_remaining", "events", "rejected_growths",
+            "growth_exhausted", "_blocked_events_recorded",
+        }
+        assert required_keys.issubset(set(sd.keys()))
+
+    def test_repr_contains_state(self):
+        model = _make_model(3)
+        scheduler = EcoGrowScheduler(model, verbose=False)
+        r = repr(scheduler)
+        assert "EcoGrowScheduler" in r
+        assert "state=" in r
+
+
+class TestExtendGridOnPlateauRepr:
+    def test_repr_contains_class_name(self):
+        model = _make_model(3)
+        scheduler = __import__(
+            "src.grid_scheduler", fromlist=["ExtendGridOnPlateau"]
+        ).ExtendGridOnPlateau(model, verbose=False)
+        r = repr(scheduler)
+        assert "ExtendGridOnPlateau" in r
+        assert "patience=" in r
