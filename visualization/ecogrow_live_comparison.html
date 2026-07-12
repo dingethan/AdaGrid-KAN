@@ -3,503 +3,271 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>EcoGrow-KAN Live Demo</title>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+<title>EcoGrow-KAN 实验控制台</title>
 <style>
 :root{
   --bg:#f5f7fb;--panel:#fff;--border:#d9dfeb;--text:#1f2937;--muted:#6b7280;
-  --fixed:#4f6bed;--ada:#f97316;--eco:#10a37f;--trial:#eab308;--reject:#e5484d;--blocked:#777;
+  --fixed:#4f6bed;--ada:#f97316;--eco:#10a37f;--trial:#d59e00;--reject:#e5484d;--blocked:#777;
 }
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
-header{padding:26px 30px;background:linear-gradient(135deg,#eef3ff,#effcf7 55%,#fff7ed);border-bottom:1px solid var(--border)}
-header h1{margin:0 0 8px;font-size:28px}
-header p{margin:0;max-width:1000px;color:var(--muted);line-height:1.7}
-.wrap{max-width:1500px;margin:0 auto;padding:18px 26px 30px}
-.intro{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px}
-.info{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
-.info h3{margin:0 0 7px;font-size:15px}
-.info p{margin:0;color:var(--muted);font-size:13px;line-height:1.6}
-.info.fixed{border-top:4px solid var(--fixed)} .info.ada{border-top:4px solid var(--ada)} .info.eco{border-top:4px solid var(--eco)}
-.controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:14px}
+header{padding:24px 30px;background:#eef3ff;border-bottom:1px solid var(--border)}
+h1{margin:0 0 8px;font-size:28px} h2{font-size:16px;margin:0 0 10px} h3{font-size:14px;margin:0 0 8px}
+header p{margin:0;max-width:1100px;color:var(--muted);line-height:1.7}
+.wrap{max-width:1540px;margin:0 auto;padding:18px 26px 30px}
+.layout{display:grid;grid-template-columns:320px minmax(0,1fr) 360px;gap:14px}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:14px}
+.field{margin-bottom:10px}.field label{display:block;color:var(--muted);font-size:12px;margin-bottom:4px}
+input,select{width:100%;border:1px solid #cbd3e1;border-radius:7px;padding:7px 8px;font:inherit;background:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 button{border:1px solid #cbd3e1;background:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;font:inherit}
-button.primary{background:var(--eco);color:white;border-color:var(--eco)}
-button:hover{filter:brightness(.98)}
-label{font-size:13px;color:var(--muted)}
-input[type=range]{vertical-align:middle;width:150px}
-.status{margin-left:auto;font-size:13px;color:var(--muted)}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) 360px;gap:14px}
-.main{display:flex;flex-direction:column;gap:14px}
-.panel{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
-.panel h2{font-size:16px;margin:0 0 8px}
-.legend{display:flex;gap:14px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:6px}
-.dot{display:inline-block;width:18px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
-svg{display:block;width:100%;height:auto}
-.axis text{fill:#6b7280;font-size:11px}.axis path,.axis line{stroke:#cbd3e1}
-.side{display:flex;flex-direction:column;gap:12px}
+button.primary{background:var(--eco);color:white;border-color:var(--eco)} button:disabled{opacity:.45;cursor:not-allowed}
+.status{font-size:13px;color:var(--muted);line-height:1.6}.ok{color:var(--eco);font-weight:700}.bad{color:var(--reject);font-weight:700}
 .metrics{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.metric{background:#f3f5f9;border:1px solid #e4e8f0;border-radius:9px;padding:9px}
-.metric span{display:block;color:var(--muted);font-size:11px}
-.metric b{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:14px}
-.event{padding:8px 9px;border-radius:8px;font-size:12px;margin-bottom:6px;border-left:4px solid #bbb;background:#f8fafc}
-.event.accepted{border-color:var(--eco)} .event.trial{border-color:var(--trial)} .event.rejected{border-color:var(--reject)} .event.blocked{border-color:var(--blocked)}
-.summary{font-size:13px;line-height:1.7;color:var(--muted)}
-.summary strong{color:var(--text)}
-.badge{display:inline-block;padding:3px 8px;border-radius:999px;font-size:11px;font-weight:700}
-.badge.fixed{background:#e8edff;color:var(--fixed)}.badge.ada{background:#fff0e5;color:var(--ada)}.badge.eco{background:#e8f8f3;color:var(--eco)}
-table{width:100%;border-collapse:collapse;font-size:12px}th,td{padding:7px 8px;border-bottom:1px solid #e6eaf1;text-align:right}th:first-child,td:first-child{text-align:left}
-.note{font-size:12px;color:var(--muted);line-height:1.6}
-@media(max-width:1050px){.grid{grid-template-columns:1fr}.intro{grid-template-columns:1fr}.status{width:100%;margin-left:0}}
+.metric{background:#f3f5f9;border:1px solid #e4e8f0;border-radius:8px;padding:9px}
+.metric span{display:block;color:var(--muted);font-size:11px}.metric b{font-family:Consolas,monospace;font-size:14px}
+.charts{display:flex;flex-direction:column;gap:14px}.chart-panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.legend{display:flex;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:12px;margin-bottom:6px}
+svg{display:block;width:100%;height:auto}.axis text{fill:#6b7280;font-size:11px}.axis path,.axis line{stroke:#cbd3e1}
+.event{padding:8px 9px;border-radius:8px;font-size:12px;margin-bottom:6px;border-left:4px solid #bbb;background:#f8fafc;line-height:1.45}
+.event.accepted{border-color:var(--eco)}.event.trial{border-color:var(--trial)}.event.rejected{border-color:var(--reject)}.event.blocked{border-color:var(--blocked)}
+.run-item{border:1px solid #e2e7f0;border-radius:8px;padding:9px;margin-bottom:8px;background:#fbfcff;font-size:12px}
+.run-item label{display:flex;gap:7px;align-items:flex-start;color:var(--text)}.run-item input{width:auto;margin-top:2px}
+.run-meta{color:var(--muted);line-height:1.5;margin-top:4px}.pill{display:inline-block;padding:2px 7px;border-radius:999px;font-weight:700;font-size:11px}
+.pill.fixed{background:#e8edff;color:var(--fixed)}.pill.adagrid{background:#fff0e5;color:var(--ada)}.pill.ecogrow{background:#e8f8f3;color:var(--eco)}
+.note{font-size:12px;color:var(--muted);line-height:1.6}.warning{color:var(--reject);font-size:12px;line-height:1.5}
+@media(max-width:1180px){.layout{grid-template-columns:1fr}.panel{margin-bottom:12px}}
 </style>
 </head>
 <body>
 <header>
-  <h1>EcoGrow-KAN：可运行的动态 Grid 对比</h1>
-  <p>
-    同一数据、同一优化器、同一训练轮数下同时训练三种模型：
-    <b>传统固定 KAN</b>、<b>AdaGrid-KAN</b> 和 <b>EcoGrow-KAN</b>。
-    重点观察：固定 KAN 必须预先猜 Grid；AdaGrid 会一直扩容；EcoGrow 会试探扩容、验证收益、失败时回退，并阻止重复尝试。
-  </p>
+  <h1>EcoGrow-KAN 实验控制台</h1>
+  <p>这个页面连接本地 FastAPI 后端，运行真实的 Python/PyTorch KAN 训练。你可以选择 Fixed、AdaGrid 或 EcoGrow 策略，实时查看训练指标，并勾选历史实验进行对比。</p>
 </header>
 
 <div class="wrap">
-  <section class="intro">
-    <div class="info fixed">
-      <h3>传统 Fixed KAN</h3>
-      <p>训练开始前固定 Grid。Grid 太小容易欠拟合，Grid 太大则增加参数。</p>
-    </div>
-    <div class="info ada">
-      <h3>AdaGrid-KAN</h3>
-      <p>检测到训练停滞时自动扩容，但所有扩容都会永久保留。</p>
-    </div>
-    <div class="info eco">
-      <h3>EcoGrow-KAN</h3>
-      <p>扩容后进入试用期，只有验证集收益足够且“值得新增参数”时才接受，否则回退并记忆失败路径。</p>
-    </div>
-  </section>
-
-  <section class="controls">
-    <button class="primary" id="playBtn">▶ 开始训练</button>
-    <button id="stepBtn">单步</button>
-    <button id="resetBtn">重置</button>
-    <label>传统 KAN 固定 Grid：
-      <input id="fixedSlider" type="range" min="3" max="50" value="12" step="1">
-      <b id="fixedValue">12</b>
-    </label>
-    <label>每帧 epoch：
-      <input id="speedSlider" type="range" min="1" max="20" value="5" step="1">
-      <b id="speedValue">5</b>
-    </label>
-    <span class="status" id="statusText">点击“开始训练”运行完整过程</span>
-  </section>
-
-  <div class="grid">
-    <main class="main">
+  <div class="layout">
+    <aside>
       <section class="panel">
-        <h2>1. 拟合过程</h2>
-        <div class="legend">
-          <span><i class="dot" style="background:#222"></i>真实函数</span>
-          <span><i class="dot" style="background:var(--fixed)"></i>Fixed KAN</span>
-          <span><i class="dot" style="background:var(--ada)"></i>AdaGrid</span>
-          <span><i class="dot" style="background:var(--eco)"></i>EcoGrow</span>
-          <span>灰点：含噪训练样本</span>
+        <h2>后端环境</h2>
+        <div id="healthBox" class="status">正在检查后端...</div>
+      </section>
+
+      <section class="panel">
+        <h2>训练配置</h2>
+        <div class="field"><label>Grid 策略</label><select id="strategy"><option value="ecogrow">EcoGrow-KAN</option><option value="adagrid">AdaGrid-KAN</option><option value="fixed">Fixed KAN</option></select></div>
+        <div class="row">
+          <div class="field"><label>Epochs</label><input id="epochs" type="number" value="700" min="1"></div>
+          <div class="field"><label>Seed</label><input id="seed" type="number" value="42"></div>
         </div>
+        <div class="row">
+          <div class="field"><label>Noise std</label><input id="noise_std" type="number" value="0.15" step="0.01" min="0"></div>
+          <div class="field"><label>Learning rate</label><input id="lr" type="number" value="0.03" step="0.001" min="0.0001"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Initial Grid</label><input id="initial_grid" type="number" value="3" min="1"></div>
+          <div class="field"><label>Fixed Grid</label><input id="fixed_grid" type="number" value="12" min="1"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Max Grid</label><input id="max_grid" type="number" value="50" min="1"></div>
+          <div class="field"><label>Patience</label><input id="patience" type="number" value="8" min="1"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Trial epochs</label><input id="trial_epochs" type="number" value="30" min="1"></div>
+          <div class="field"><label>Weight decay</label><input id="weight_decay" type="number" value="0.00001" step="0.00001" min="0"></div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Min improvement</label><input id="min_improvement" type="number" value="0.01" step="0.001"></div>
+          <div class="field"><label>Min efficiency</label><input id="min_efficiency" type="number" value="0.05" step="0.001"></div>
+        </div>
+        <button class="primary" id="startBtn" disabled>开始训练</button>
+        <button id="refreshBtn">刷新历史</button>
+        <p id="formError" class="warning"></p>
+      </section>
+
+      <section class="panel">
+        <h2>当前指标</h2>
+        <div class="metrics">
+          <div class="metric"><span>Run</span><b id="mRun">-</b></div>
+          <div class="metric"><span>Epoch</span><b id="mEpoch">0</b></div>
+          <div class="metric"><span>Train Loss</span><b id="mTrain">-</b></div>
+          <div class="metric"><span>Val Loss</span><b id="mVal">-</b></div>
+          <div class="metric"><span>Grid</span><b id="mGrid">-</b></div>
+          <div class="metric"><span>Params</span><b id="mParams">-</b></div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="charts">
+      <section class="chart-panel">
+        <h2>训练 Loss</h2>
+        <svg id="trainChart" viewBox="0 0 980 250"></svg>
+      </section>
+      <section class="chart-panel">
+        <h2>验证集 Loss</h2>
+        <svg id="valChart" viewBox="0 0 980 250"></svg>
+      </section>
+      <section class="chart-panel">
+        <h2>Grid 变化</h2>
+        <svg id="gridChart" viewBox="0 0 980 230"></svg>
+      </section>
+      <section class="chart-panel">
+        <h2>最终拟合效果</h2>
+        <div class="legend" id="fitLegend"></div>
         <svg id="fitChart" viewBox="0 0 980 330"></svg>
-      </section>
-
-      <section class="panel">
-        <h2>2. 验证集 Loss</h2>
-        <div class="legend">
-          <span><i class="dot" style="background:var(--fixed)"></i>Fixed</span>
-          <span><i class="dot" style="background:var(--ada)"></i>AdaGrid</span>
-          <span><i class="dot" style="background:var(--eco)"></i>EcoGrow</span>
-          <span>虚线：Grid 结构事件</span>
-        </div>
-        <svg id="lossChart" viewBox="0 0 980 280"></svg>
-      </section>
-
-      <section class="panel">
-        <h2>3. Grid / 参数规模随训练变化</h2>
-        <div class="legend">
-          <span><i class="dot" style="background:var(--fixed)"></i>Fixed Grid</span>
-          <span><i class="dot" style="background:var(--ada)"></i>AdaGrid</span>
-          <span><i class="dot" style="background:var(--eco)"></i>EcoGrow</span>
-        </div>
-        <svg id="gridChart" viewBox="0 0 980 250"></svg>
       </section>
     </main>
 
-    <aside class="side">
-      <section class="panel">
-        <h2>实时指标</h2>
-        <div class="metrics">
-          <div class="metric"><span>Epoch</span><b id="mEpoch">0</b></div>
-          <div class="metric"><span>Eco 状态</span><b id="mEcoState">normal</b></div>
-          <div class="metric"><span>Fixed G / Params</span><b id="mFixedGP">12 / 16</b></div>
-          <div class="metric"><span>Fixed Val MSE</span><b id="mFixedVal">—</b></div>
-          <div class="metric"><span>Ada G / Params</span><b id="mAdaGP">3 / 7</b></div>
-          <div class="metric"><span>Ada Val MSE</span><b id="mAdaVal">—</b></div>
-          <div class="metric"><span>Eco G / Params</span><b id="mEcoGP">3 / 7</b></div>
-          <div class="metric"><span>Eco Val MSE</span><b id="mEcoVal">—</b></div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <h2>EcoGrow 决策</h2>
-        <div id="decisionBox" class="summary">
-          等待第一次 plateau。<br>
-          接受条件：<br>
-          ① 验证误差相对下降 ≥ 1%<br>
-          ② efficiency score ≥ 0.05
-        </div>
-      </section>
-
+    <aside>
       <section class="panel">
         <h2>事件日志</h2>
-        <div id="eventLog"><div class="event">等待训练开始…</div></div>
+        <div id="eventLog"><div class="event">等待训练开始。</div></div>
       </section>
-
       <section class="panel">
-        <h2>最终比较</h2>
-        <table>
-          <thead><tr><th>方法</th><th>Grid</th><th>Params</th><th>Val MSE</th></tr></thead>
-          <tbody>
-            <tr><td><span class="badge fixed">Fixed</span></td><td id="rFixedG">—</td><td id="rFixedP">—</td><td id="rFixedV">—</td></tr>
-            <tr><td><span class="badge ada">AdaGrid</span></td><td id="rAdaG">—</td><td id="rAdaP">—</td><td id="rAdaV">—</td></tr>
-            <tr><td><span class="badge eco">EcoGrow</span></td><td id="rEcoG">—</td><td id="rEcoP">—</td><td id="rEcoV">—</td></tr>
-          </tbody>
-        </table>
-        <p class="note" id="finalNote">训练结束后会自动总结参数节省和验证误差差异。</p>
+        <h2>历史实验</h2>
+        <p class="note">勾选实验后，它的曲线会显示在中间图表中。</p>
+        <div id="runList"></div>
       </section>
     </aside>
   </div>
 </div>
 
 <script>
-// ------------------------------
-// 1. Deterministic data
-// ------------------------------
-function seededRandom(seed){
-  let s = seed >>> 0;
-  return () => {
-    s = (1664525 * s + 1013904223) >>> 0;
-    return s / 4294967296;
-  };
-}
-const rand = seededRandom(42);
-const target = x => Math.sin(5*x) + 0.5*Math.cos(15*x);
-const TRAIN_N = 160, VAL_N = 160, VIS_N = 401;
-const trainX = Array.from({length:TRAIN_N},(_,i)=>-1+2*i/(TRAIN_N-1));
-const trainY = trainX.map(x => target(x) + 0.15 * gaussian(rand));
-const valX = Array.from({length:VAL_N},(_,i)=>-1+2*(i+0.37)/(VAL_N-1+0.74));
-const valY = valX.map(target);
-const visX = Array.from({length:VIS_N},(_,i)=>-1+2*i/(VIS_N-1));
+const state={healthy:false,activeRun:null,runs:new Map(),selected:new Set(),source:null};
+const colors=["#10a37f","#f97316","#4f6bed","#b45309","#7c3aed","#0f766e","#dc2626","#475569"];
+const strategyClass={fixed:"fixed",adagrid:"adagrid",ecogrow:"ecogrow"};
 
-function gaussian(rng){
-  const u = Math.max(rng(),1e-12), v = rng();
-  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
-}
+function $(id){return document.getElementById(id)}
+function fmt(v){return v==null||Number.isNaN(v)?"-":Number(v).toExponential(3)}
+async function apiGet(url){const r=await fetch(url);if(!r.ok)throw new Error(await r.text());return r.json()}
+async function apiPost(url,payload){const r=await fetch(url,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});if(!r.ok){let msg=await r.text();try{msg=JSON.parse(msg).detail||msg}catch{}throw new Error(msg)}return r.json()}
 
-// ------------------------------
-// 2. Minimal 1D KAN
-// ------------------------------
-class KAN1D{
-  constructor(grid=3, seed=1){
-    this.k=3; this.lr=0.03; this.seed=seed; this.rng=seededRandom(seed);
-    this.baseW=0; this.mW=0; this.vW=0; this.stepCount=0;
-    this.setGrid(grid);
-  }
-  clone(){
-    const c = new KAN1D(this.gridSize,this.seed);
-    c.grid=this.grid.slice(); c.knots=this.knots.slice();
-    c.cp=this.cp.slice(); c.m=this.m.slice(); c.v=this.v.slice();
-    c.baseW=this.baseW; c.mW=this.mW; c.vW=this.vW; c.stepCount=this.stepCount;
-    return c;
-  }
-  setGrid(G){
-    this.gridSize=G;
-    this.grid=Array.from({length:G+1},(_,i)=>-1+2*i/G);
-    const left=Array(this.k).fill(-1), right=Array(this.k-1).fill(1);
-    this.knots=left.concat(this.grid,right);
-    const n=G+this.k;
-    this.cp=Array.from({length:n},()=> (this.rng()-0.5)*0.08);
-    this.m=Array(n).fill(0); this.v=Array(n).fill(0);
-  }
-  params(){ return this.cp.length + 1; }
-  basis(x){
-    const k=this.k, t=this.knots, n=t.length-k;
-    let prev=Array(t.length-1).fill(0);
-    for(let i=0;i<t.length-1;i++){
-      const inside=(x>=t[i]-1e-12)&&((i===t.length-2)?x<=t[i+1]+1e-12:x<t[i+1]-1e-12);
-      if(inside){prev[i]=1;break;}
-    }
-    for(let d=2;d<=k;d++){
-      const cur=Array(t.length-d).fill(0);
-      for(let i=0;i<cur.length;i++){
-        const d1=t[i+d-1]-t[i], d2=t[i+d]-t[i+1];
-        const a=d1>1e-12?(x-t[i])/d1*prev[i]:0;
-        const b=d2>1e-12?(t[i+d]-x)/d2*(prev[i+1]||0):0;
-        cur[i]=a+b;
-      }
-      prev=cur;
-    }
-    return Array.from({length:n},(_,i)=>prev[i]||0);
-  }
-  predictOne(x){
-    const b=this.basis(x);
-    let y=0; for(let i=0;i<b.length;i++) y+=this.cp[i]*b[i];
-    return y + this.baseW*(x/(1+Math.exp(-x)));
-  }
-  predict(xs){return xs.map(x=>this.predictOne(x))}
-  mse(xs,ys){
-    let s=0; for(let i=0;i<xs.length;i++){const e=this.predictOne(xs[i])-ys[i];s+=e*e}
-    return s/xs.length;
-  }
-  trainStep(){
-    const n=this.cp.length, g=Array(n).fill(0); let gw=0, loss=0;
-    for(let q=0;q<trainX.length;q++){
-      const x=trainX[q], y=trainY[q], b=this.basis(x), silu=x/(1+Math.exp(-x));
-      let p=this.baseW*silu; for(let i=0;i<n;i++) p+=this.cp[i]*b[i];
-      const e=p-y; loss+=e*e;
-      for(let i=0;i<n;i++) g[i]+=2*e*b[i]/trainX.length;
-      gw+=2*e*silu/trainX.length;
-    }
-    loss/=trainX.length;
-    let norm=gw*gw; for(const z of g) norm+=z*z; norm=Math.sqrt(norm);
-    if(norm>10){const sc=10/norm;gw*=sc;for(let i=0;i<n;i++)g[i]*=sc}
-    const b1=.9,b2=.999,eps=1e-8,wd=1e-5; this.stepCount++;
-    for(let i=0;i<n;i++){
-      this.m[i]=b1*this.m[i]+(1-b1)*g[i];
-      this.v[i]=b2*this.v[i]+(1-b2)*g[i]*g[i];
-      const mh=this.m[i]/(1-Math.pow(b1,this.stepCount));
-      const vh=this.v[i]/(1-Math.pow(b2,this.stepCount));
-      this.cp[i]-=this.lr*(mh/(Math.sqrt(vh)+eps)+wd*this.cp[i]);
-    }
-    this.mW=b1*this.mW+(1-b1)*gw; this.vW=b2*this.vW+(1-b2)*gw*gw;
-    const mh=this.mW/(1-Math.pow(b1,this.stepCount)), vh=this.vW/(1-Math.pow(b2,this.stepCount));
-    this.baseW-=this.lr*(mh/(Math.sqrt(vh)+eps)+wd*this.baseW);
-    return loss;
-  }
-  refine(newG){
-    if(newG<=this.gridSize)return;
-    const old=this.cp.slice(), oldN=old.length, newN=newG+this.k;
-    const next=Array(newN);
-    for(let j=0;j<newN;j++){
-      const pos=(newN===1?0:j/(newN-1))*(oldN-1), i0=Math.floor(pos), i1=Math.min(i0+1,oldN-1), a=pos-i0;
-      next[j]=(1-a)*old[i0]+a*old[i1];
-    }
-    this.gridSize=newG; this.grid=Array.from({length:newG+1},(_,i)=>-1+2*i/newG);
-    this.knots=Array(this.k).fill(-1).concat(this.grid,Array(this.k-1).fill(1));
-    this.cp=next; this.m=Array(newN).fill(0); this.v=Array(newN).fill(0); this.stepCount=0;
+async function checkHealth(){
+  try{
+    const h=await apiGet("/api/health");
+    state.healthy=h.ok;
+    $("startBtn").disabled=!h.ok;
+    $("healthBox").innerHTML=`<span class="${h.ok?"ok":"bad"}">${h.ok?"可用":"不可用"}</span><br>Python ${h.python}<br>Torch ${h.torch.available?h.torch.version:"不可用"} / ${h.torch.device}<br>runs 目录：${h.runs_dir_writable?"可写":"不可写"}${h.errors.length?`<br><span class="bad">${h.errors.join("<br>")}</span>`:""}`;
+  }catch(e){
+    state.healthy=false;$("startBtn").disabled=true;$("healthBox").innerHTML=`<span class="bad">后端不可用</span><br>${e.message}`;
   }
 }
 
-// ------------------------------
-// 3. Schedulers
-// ------------------------------
-class Plateau{
-  constructor(patience=28,minDeltaRel=.004){this.patience=patience;this.minDeltaRel=minDeltaRel;this.best=Infinity;this.bad=0}
-  reset(){this.best=Infinity;this.bad=0}
-  step(loss){
-    const d=Math.max(1e-8,this.best*this.minDeltaRel);
-    if(loss<this.best-d){this.best=loss;this.bad=0;return false}
-    this.bad++; return this.bad>=this.patience;
-  }
+function readConfig(){
+  const ids=["epochs","seed","noise_std","lr","initial_grid","fixed_grid","max_grid","patience","trial_epochs","weight_decay","min_improvement","min_efficiency"];
+  const cfg={strategy:$("strategy").value,train_size:160,val_size:160,test_size:400};
+  for(const id of ids){cfg[id]=Number($(id).value)}
+  return cfg;
 }
-class AdaScheduler{
-  constructor(){this.det=new Plateau();this.max=50}
-  step(trainLoss,model){
-    if(model.gridSize>=this.max)return null;
-    if(!this.det.step(trainLoss))return null;
-    const old=model.gridSize, next=Math.min(old*2,this.max);
-    model.refine(next); this.det.reset();
-    return {type:"accepted",old,newG:next};
-  }
-}
-class EcoScheduler{
-  constructor(){
-    this.det=new Plateau();this.max=50;this.state="normal";this.trialLeft=0;
-    this.backup=null;this.beforeVal=0;this.beforeParams=0;this.oldG=0;this.newG=0;
-    this.bestTrial=Infinity;this.rejected=new Set();this.blockedOnce=false;
-    this.minImp=.01;this.minEff=.05;this.trialEpochs=30;
-  }
-  step(trainLoss,valLoss,model){
-    if(this.state==="trial"){
-      this.bestTrial=Math.min(this.bestTrial,valLoss);this.trialLeft--;
-      if(this.trialLeft>0)return {model,action:"none"};
-      const relImp=(this.beforeVal-this.bestTrial)/Math.max(Math.abs(this.beforeVal),1e-12);
-      const relPg=(model.params()-this.beforeParams)/Math.max(this.beforeParams,1);
-      const eff=relImp/Math.max(relPg,1e-12);
-      if(relImp>=this.minImp && eff>=this.minEff){
-        const ev={type:"accepted",old:this.oldG,newG:this.newG,relImp,relPg,eff};
-        this.backup=null;this.state="normal";this.det.reset();
-        return {model,action:"accepted",event:ev};
-      }
-      const key=`${this.oldG}->${this.newG}`;this.rejected.add(key);
-      const restored=this.backup; this.backup=null;this.state="normal";this.det.reset();
-      const ev={type:"rejected",old:this.oldG,newG:this.newG,relImp,relPg,eff};
-      return {model:restored,action:"rejected",event:ev};
-    }
-    if(model.gridSize>=this.max)return {model,action:"none"};
-    if(!this.det.step(trainLoss))return {model,action:"none"};
-    const old=model.gridSize,next=Math.min(old*2,this.max),key=`${old}->${next}`;
-    if(this.rejected.has(key)){
-      this.det.reset();
-      if(!this.blockedOnce){this.blockedOnce=true;return {model,action:"blocked",event:{type:"blocked",old,newG:next}}}
-      return {model,action:"none"};
-    }
-    this.backup=model.clone();this.beforeVal=valLoss;this.beforeParams=model.params();
-    this.oldG=old;this.newG=next;this.bestTrial=Infinity;this.trialLeft=this.trialEpochs;
-    model.refine(next);this.state="trial";
-    return {model,action:"trial",event:{type:"trial",old,newG:next,beforeVal:valLoss}};
+
+async function startRun(){
+  $("formError").textContent="";
+  $("startBtn").disabled=true;
+  try{
+    const out=await apiPost("/api/runs",readConfig());
+    state.activeRun=out.run_id;
+    state.selected.add(out.run_id);
+    $("mRun").textContent=out.run_id.split("-").slice(1).join("-");
+    connectStream(out.run_id);
+  }catch(e){
+    $("formError").textContent=e.message;
+    $("startBtn").disabled=!state.healthy;
   }
 }
 
-// ------------------------------
-// 4. State
-// ------------------------------
-const MAX_EPOCH=700;
-let epoch=0,running=false,timer=null;
-let fixed,ada,eco,adaSch,ecoSch;
-let histories,events;
+function connectStream(runId){
+  if(state.source)state.source.close();
+  state.source=new EventSource(`/api/runs/${runId}/stream`);
+  state.source.addEventListener("metric",ev=>{
+    const m=JSON.parse(ev.data);updateMetric(runId,m);
+  });
+  state.source.addEventListener("event",ev=>{
+    addEvent(JSON.parse(ev.data));
+  });
+  state.source.addEventListener("completed",async ev=>{
+    addEvent({type:"completed",epoch:"-",message:"训练完成"});
+    state.source.close();state.source=null;state.activeRun=null;$("startBtn").disabled=!state.healthy;
+    await loadRuns();await loadRunDetail(runId,true);
+  });
+  state.source.addEventListener("failed",ev=>{
+    const p=JSON.parse(ev.data);addEvent({type:"rejected",epoch:"-",message:p.error||"训练失败"});
+    state.source.close();state.source=null;state.activeRun=null;$("startBtn").disabled=!state.healthy;
+  });
+}
 
-function init(){
-  const fg=+document.getElementById("fixedSlider").value;
-  fixed=new KAN1D(fg,1); ada=new KAN1D(3,1); eco=new KAN1D(3,1);
-  adaSch=new AdaScheduler(); ecoSch=new EcoScheduler();
-  epoch=0; running=false; clearTimeout(timer);
-  histories={fixedVal:[],adaVal:[],ecoVal:[],fixedG:[],adaG:[],ecoG:[]}; events=[];
-  document.getElementById("playBtn").textContent="▶ 开始训练";
-  document.getElementById("eventLog").innerHTML='<div class="event">已重置。点击“开始训练”。</div>';
-  document.getElementById("decisionBox").innerHTML='等待第一次 plateau。<br>接受条件：<br>① 验证误差相对下降 ≥ 1%<br>② efficiency score ≥ 0.05';
+function ensureRun(runId){
+  if(!state.runs.has(runId))state.runs.set(runId,{summary:{run_id:runId,status:"running"},config:{},metrics:[],events:[],fit_data:{}});
+  return state.runs.get(runId);
+}
+function updateMetric(runId,m){
+  const run=ensureRun(runId);run.metrics.push(m);
+  $("mEpoch").textContent=m.epoch;$("mTrain").textContent=fmt(m.train_loss);$("mVal").textContent=fmt(m.val_loss);$("mGrid").textContent=m.grid;$("mParams").textContent=m.params;
   drawAll();
 }
-function recordEvent(ev){
-  ev.epoch=epoch;events.push(ev);
-  const box=document.createElement("div");box.className=`event ${ev.type}`;
-  if(ev.type==="trial")box.textContent=`Ep ${epoch}: Eco 试探扩容 G=${ev.old} → ${ev.newG}`;
-  if(ev.type==="accepted")box.textContent=`Ep ${epoch}: Eco 接受 G=${ev.old} → ${ev.newG}`;
-  if(ev.type==="rejected")box.textContent=`Ep ${epoch}: Eco 拒绝 G=${ev.old} → ${ev.newG}，回退`;
-  if(ev.type==="blocked")box.textContent=`Ep ${epoch}: Eco 阻止重复尝试 ${ev.old} → ${ev.newG}`;
-  const log=document.getElementById("eventLog");log.prepend(box);
-  while(log.children.length>8)log.removeChild(log.lastChild);
-  if(ev.relImp!=null){
-    document.getElementById("decisionBox").innerHTML=
-      `<strong>${ev.type==="accepted"?"ACCEPT":"REJECT"}</strong><br>`+
-      `Validation improvement: ${(ev.relImp*100).toFixed(2)}%<br>`+
-      `Parameter growth: ${(ev.relPg*100).toFixed(2)}%<br>`+
-      `Efficiency score: ${ev.eff.toFixed(3)}`;
-  }else if(ev.type==="trial"){
-    document.getElementById("decisionBox").innerHTML=
-      `<strong>TRIAL</strong><br>正在评估 G=${ev.old} → ${ev.newG}<br>试用期：30 epochs`;
-  }else if(ev.type==="blocked"){
-    document.getElementById("decisionBox").innerHTML=
-      `<strong>BLOCKED</strong><br>此前 ${ev.old} → ${ev.newG} 已被拒绝，因此不再重复扩容。`;
+function addEvent(e){
+  if(e.run_id){const run=ensureRun(e.run_id);run.events.push(e)}
+  const box=document.createElement("div");box.className=`event ${e.type||""}`;
+  const label=e.message || `Epoch ${e.epoch}: ${e.type} ${e.old_grid??""} ${e.new_grid?`→ ${e.new_grid}`:""}`;
+  box.textContent=label;
+  const log=$("eventLog");log.prepend(box);while(log.children.length>10)log.removeChild(log.lastChild);
+}
+
+async function loadRuns(){
+  const data=await apiGet("/api/runs");
+  const list=$("runList");list.innerHTML="";
+  for(const item of data.runs){
+    const row=document.createElement("div");row.className="run-item";
+    const checked=state.selected.has(item.run_id)?"checked":"";
+    row.innerHTML=`<label><input type="checkbox" data-run="${item.run_id}" ${checked}><div><span class="pill ${strategyClass[item.strategy]||""}">${item.strategy}</span> ${item.run_id}<div class="run-meta">seed=${item.seed??"-"} · grid=${item.final_grid??"-"} · params=${item.params??"-"} · val=${fmt(item.val_mse)}</div></div></label>`;
+    list.appendChild(row);
   }
+  list.querySelectorAll("input[type=checkbox]").forEach(cb=>{
+    cb.onchange=async e=>{
+      const id=e.target.dataset.run;
+      if(e.target.checked){state.selected.add(id);await loadRunDetail(id,true)}
+      else{state.selected.delete(id);drawAll()}
+    };
+  });
 }
-function trainEpoch(){
-  if(epoch>=MAX_EPOCH)return;
-  epoch++;
-  const lf=fixed.trainStep(), la=ada.trainStep(), le=eco.trainStep();
-  const vf=fixed.mse(valX,valY), va=ada.mse(valX,valY), ve=eco.mse(valX,valY);
 
-  const aev=adaSch.step(la,ada);
-  if(aev){aev.epoch=epoch;events.push({...aev,source:"ada"});}
-  const out=ecoSch.step(le,ve,eco); eco=out.model;
-  if(out.event)recordEvent(out.event);
-
-  histories.fixedVal.push(vf);histories.adaVal.push(va);histories.ecoVal.push(ve);
-  histories.fixedG.push(fixed.gridSize);histories.adaG.push(ada.gridSize);histories.ecoG.push(eco.gridSize);
-}
-function stepFrame(){
-  const n=+document.getElementById("speedSlider").value;
-  for(let i=0;i<n && epoch<MAX_EPOCH;i++)trainEpoch();
+async function loadRunDetail(runId,select=false){
+  const data=await apiGet(`/api/runs/${runId}`);
+  state.runs.set(runId,data);
+  if(select)state.selected.add(runId);
   drawAll();
-  if(epoch>=MAX_EPOCH){
-    running=false;document.getElementById("playBtn").textContent="▶ 已完成";
-    document.getElementById("statusText").textContent=`训练完成：${MAX_EPOCH} epochs`;
-    updateFinal();
-    return;
-  }
-  if(running)timer=setTimeout(stepFrame,60);
+  await loadRuns();
 }
 
-// ------------------------------
-// 5. Drawing
-// ------------------------------
-function pathFrom(points){return points.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}
-function setupSvg(id,w,h,m){
-  const s=d3.select(id);s.selectAll("*").remove();
-  s.append("g").attr("class","axis x").attr("transform",`translate(0,${h-m.bottom})`);
-  s.append("g").attr("class","axis y").attr("transform",`translate(${m.left},0)`);
-  return s;
+function selectedRuns(){return Array.from(state.selected).map(id=>[id,state.runs.get(id)]).filter(([,r])=>r)}
+function clearSvg(svg){while(svg.firstChild)svg.removeChild(svg.firstChild)}
+function sx(x,min,max,left,right){return left+(x-min)/(max-min||1)*(right-left)}
+function sy(y,min,max,top,bottom,log=false){const v=log?Math.log10(Math.max(y,min)):y;const a=log?Math.log10(min):min,b=log?Math.log10(max):max;return bottom-(v-a)/(b-a||1)*(bottom-top)}
+function path(points){return points.map((p,i)=>(i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1)).join(" ")}
+function addPath(svg,pts,color,width=2){const el=document.createElementNS("http://www.w3.org/2000/svg","path");el.setAttribute("d",path(pts));el.setAttribute("fill","none");el.setAttribute("stroke",color);el.setAttribute("stroke-width",width);svg.appendChild(el)}
+function addText(svg,x,y,t){const el=document.createElementNS("http://www.w3.org/2000/svg","text");el.setAttribute("x",x);el.setAttribute("y",y);el.setAttribute("fill","#6b7280");el.setAttribute("font-size","11");el.textContent=t;svg.appendChild(el)}
+function drawAxes(svg,w,h,m){const x=document.createElementNS("http://www.w3.org/2000/svg","line");x.setAttribute("x1",m.l);x.setAttribute("x2",w-m.r);x.setAttribute("y1",h-m.b);x.setAttribute("y2",h-m.b);x.setAttribute("stroke","#cbd3e1");svg.appendChild(x);const y=document.createElementNS("http://www.w3.org/2000/svg","line");y.setAttribute("x1",m.l);y.setAttribute("x2",m.l);y.setAttribute("y1",m.t);y.setAttribute("y2",h-m.b);y.setAttribute("stroke","#cbd3e1");svg.appendChild(y)}
+
+function drawMetricChart(id,key,log=false){
+  const svg=$(id),w=980,h=250,m={l:62,r:18,t:16,b:32};clearSvg(svg);drawAxes(svg,w,h,m);
+  const runs=selectedRuns();const vals=runs.flatMap(([,r])=>r.metrics.map(x=>x[key]).filter(v=>v>0||!log));if(!vals.length){addText(svg,420,120,"暂无数据");return}
+  const maxEpoch=Math.max(...runs.flatMap(([,r])=>r.metrics.map(x=>x.epoch)),1);
+  const ymin=log?Math.max(1e-6,Math.min(...vals)*.7):Math.min(0,Math.min(...vals));const ymax=Math.max(...vals)*1.2+1e-12;
+  runs.forEach(([runId,r],idx)=>{const c=colors[idx%colors.length];addPath(svg,r.metrics.map(v=>[sx(v.epoch,1,maxEpoch,m.l,w-m.r),sy(v[key],ymin,ymax,m.t,h-m.b,log)]),c,2.2);addText(svg,w-m.r-180,20+idx*15,`${r.summary?.strategy||r.config?.strategy||""} ${runId}`,);});
 }
+function drawGridChart(){drawMetricChart("gridChart","grid",false)}
 function drawFit(){
-  const w=980,h=330,m={top:15,right:18,bottom:34,left:50};
-  const s=setupSvg("#fitChart",w,h,m),xs=d3.scaleLinear().domain([-1,1]).range([m.left,w-m.right]),ys=d3.scaleLinear().domain([-1.8,1.8]).range([h-m.bottom,m.top]);
-  s.select(".x").call(d3.axisBottom(xs));s.select(".y").call(d3.axisLeft(ys));
-  s.selectAll("circle").data(trainX).enter().append("circle").attr("cx",d=>xs(d)).attr("cy",(d,i)=>ys(trainY[i])).attr("r",2).attr("fill","#9ca3af").attr("opacity",.45);
-  const add=(vals,color,width=2.3,opacity=1)=>s.append("path").attr("d",pathFrom(visX.map((x,i)=>[xs(x),ys(vals[i])]))).attr("fill","none").attr("stroke",color).attr("stroke-width",width).attr("opacity",opacity);
-  add(visX.map(target),"#222",2.2,.65);add(fixed.predict(visX),"#4f6bed");add(ada.predict(visX),"#f97316");add(eco.predict(visX),"#10a37f",2.8);
+  const svg=$("fitChart"),w=980,h=330,m={l:52,r:18,t:16,b:34};clearSvg(svg);drawAxes(svg,w,h,m);
+  const runs=selectedRuns().filter(([,r])=>r.fit_data&&r.fit_data.x_test);if(!runs.length){addText(svg,420,150,"暂无拟合结果");return}
+  const base=runs[0][1].fit_data;const xs=base.x_test,ys=base.y_test;const allY=[...ys,...runs.flatMap(([,r])=>r.fit_data.y_pred||[])];const ymin=Math.min(...allY,-1.5),ymax=Math.max(...allY,1.5);
+  (base.x_train||[]).forEach((x,i)=>{const c=document.createElementNS("http://www.w3.org/2000/svg","circle");c.setAttribute("cx",sx(x,-1,1,m.l,w-m.r));c.setAttribute("cy",sy(base.y_train[i],ymin,ymax,m.t,h-m.b));c.setAttribute("r",2);c.setAttribute("fill","#9ca3af");c.setAttribute("opacity",".45");svg.appendChild(c)});
+  addPath(svg,xs.map((x,i)=>[sx(x,-1,1,m.l,w-m.r),sy(ys[i],ymin,ymax,m.t,h-m.b)]),"#222",2.2);
+  $("fitLegend").innerHTML='<span>黑线：真实函数，灰点：训练样本</span>';
+  runs.forEach(([runId,r],idx)=>{const c=colors[idx%colors.length];addPath(svg,r.fit_data.x_test.map((x,i)=>[sx(x,-1,1,m.l,w-m.r),sy(r.fit_data.y_pred[i],ymin,ymax,m.t,h-m.b)]),c,2.4);$("fitLegend").innerHTML+=`<span style="color:${c}">● ${r.summary?.strategy||r.config?.strategy} ${runId}</span>`});
 }
-function drawLoss(){
-  const w=980,h=280,m={top:12,right:18,bottom:32,left:60};
-  const s=setupSvg("#lossChart",w,h,m),x=d3.scaleLinear().domain([0,MAX_EPOCH]).range([m.left,w-m.right]);
-  const vals=[...histories.fixedVal,...histories.adaVal,...histories.ecoVal].filter(v=>v>0);
-  const ymin=vals.length?Math.max(1e-5,d3.min(vals)*.7):1e-4,ymax=vals.length?Math.max(.2,d3.max(vals)*1.2):1;
-  const y=d3.scaleLog().domain([ymin,ymax]).range([h-m.bottom,m.top]);
-  s.select(".x").call(d3.axisBottom(x));s.select(".y").call(d3.axisLeft(y).ticks(5,".0e"));
-  const add=(arr,color)=>{if(!arr.length)return;s.append("path").attr("d",pathFrom(arr.map((v,i)=>[x(i+1),y(Math.max(v,ymin))]))).attr("fill","none").attr("stroke",color).attr("stroke-width",2)};
-  add(histories.fixedVal,"#4f6bed");add(histories.adaVal,"#f97316");add(histories.ecoVal,"#10a37f");
-  events.filter(e=>e.source!=="ada").forEach(e=>s.append("line").attr("x1",x(e.epoch)).attr("x2",x(e.epoch)).attr("y1",m.top).attr("y2",h-m.bottom).attr("stroke",e.type==="rejected"?"#e5484d":e.type==="blocked"?"#777":e.type==="trial"?"#eab308":"#10a37f").attr("stroke-dasharray","4 4").attr("opacity",.65));
-}
-function drawGrid(){
-  const w=980,h=250,m={top:12,right:18,bottom:32,left:55};
-  const s=setupSvg("#gridChart",w,h,m),x=d3.scaleLinear().domain([0,MAX_EPOCH]).range([m.left,w-m.right]),y=d3.scaleLinear().domain([0,52]).range([h-m.bottom,m.top]);
-  s.select(".x").call(d3.axisBottom(x));s.select(".y").call(d3.axisLeft(y).ticks(6));
-  const add=(arr,color)=>{if(!arr.length)return;s.append("path").attr("d",pathFrom(arr.map((v,i)=>[x(i+1),y(v)]))).attr("fill","none").attr("stroke",color).attr("stroke-width",2.5)};
-  add(histories.fixedG,"#4f6bed");add(histories.adaG,"#f97316");add(histories.ecoG,"#10a37f");
-}
-function drawAll(){
-  drawFit();drawLoss();drawGrid();
-  const vf=fixed.mse(valX,valY),va=ada.mse(valX,valY),ve=eco.mse(valX,valY);
-  document.getElementById("mEpoch").textContent=epoch;
-  document.getElementById("mEcoState").textContent=ecoSch.state;
-  document.getElementById("mFixedGP").textContent=`${fixed.gridSize} / ${fixed.params()}`;
-  document.getElementById("mAdaGP").textContent=`${ada.gridSize} / ${ada.params()}`;
-  document.getElementById("mEcoGP").textContent=`${eco.gridSize} / ${eco.params()}`;
-  document.getElementById("mFixedVal").textContent=vf.toExponential(2);
-  document.getElementById("mAdaVal").textContent=va.toExponential(2);
-  document.getElementById("mEcoVal").textContent=ve.toExponential(2);
-  document.getElementById("statusText").textContent=`Epoch ${epoch}/${MAX_EPOCH}`;
-  document.getElementById("rFixedG").textContent=fixed.gridSize;document.getElementById("rFixedP").textContent=fixed.params();document.getElementById("rFixedV").textContent=vf.toExponential(3);
-  document.getElementById("rAdaG").textContent=ada.gridSize;document.getElementById("rAdaP").textContent=ada.params();document.getElementById("rAdaV").textContent=va.toExponential(3);
-  document.getElementById("rEcoG").textContent=eco.gridSize;document.getElementById("rEcoP").textContent=eco.params();document.getElementById("rEcoV").textContent=ve.toExponential(3);
-}
-function updateFinal(){
-  const va=ada.mse(valX,valY),ve=eco.mse(valX,valY);
-  const pr=(ada.params()-eco.params())/ada.params()*100;
-  const vr=(va-ve)/va*100;
-  document.getElementById("finalNote").innerHTML=
-    `相对 AdaGrid：EcoGrow 参数 <strong>${pr>=0?"减少":"增加"} ${Math.abs(pr).toFixed(1)}%</strong>，`+
-    `验证 MSE <strong>${vr>=0?"降低":"升高"} ${Math.abs(vr).toFixed(1)}%</strong>。`;
-}
+function drawAll(){drawMetricChart("trainChart","train_loss",true);drawMetricChart("valChart","val_loss",true);drawGridChart();drawFit()}
 
-// ------------------------------
-// 6. Controls
-// ------------------------------
-document.getElementById("playBtn").onclick=()=>{
-  if(epoch>=MAX_EPOCH)return;
-  running=!running;document.getElementById("playBtn").textContent=running?"⏸ 暂停":"▶ 继续";
-  document.getElementById("fixedSlider").disabled=running;
-  if(running)stepFrame();else clearTimeout(timer);
-};
-document.getElementById("stepBtn").onclick=()=>{if(!running&&epoch<MAX_EPOCH){trainEpoch();drawAll()}};
-document.getElementById("resetBtn").onclick=()=>{document.getElementById("fixedSlider").disabled=false;init()};
-document.getElementById("fixedSlider").oninput=e=>{document.getElementById("fixedValue").textContent=e.target.value;if(!running)init()};
-document.getElementById("speedSlider").oninput=e=>document.getElementById("speedValue").textContent=e.target.value;
-
-init();
+$("startBtn").onclick=startRun;$("refreshBtn").onclick=async()=>{await loadRuns();drawAll()};
+checkHealth().then(loadRuns).then(drawAll);
 </script>
 </body>
 </html>

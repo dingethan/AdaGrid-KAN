@@ -1,0 +1,85 @@
+[
+  {
+    "epoch": 82,
+    "type": "trial",
+    "old_grid": 3,
+    "new_grid": 6,
+    "val_loss_before": 0.26191216707229614
+  },
+  {
+    "epoch": 112,
+    "type": "accepted",
+    "old_grid": 3,
+    "new_grid": 6,
+    "val_loss_before": 0.26191216707229614,
+    "best_trial_val_loss": 0.12919653952121735,
+    "relative_improvement": 0.5067180690175612,
+    "relative_param_growth": 0.42857142857142855,
+    "efficiency_score": 1.1823421610409763
+  },
+  {
+    "epoch": 151,
+    "type": "trial",
+    "old_grid": 6,
+    "new_grid": 12,
+    "val_loss_before": 0.11980050057172775
+  },
+  {
+    "epoch": 181,
+    "type": "accepted",
+    "old_grid": 6,
+    "new_grid": 12,
+    "val_loss_before": 0.11980050057172775,
+    "best_trial_val_loss": 0.03841635212302208,
+    "relative_improvement": 0.6793306209933473,
+    "relative_param_growth": 0.6,
+    "efficiency_score": 1.1322177016555788
+  },
+  {
+    "epoch": 282,
+    "type": "trial",
+    "old_grid": 12,
+    "new_grid": 24,
+    "val_loss_before": 0.012432241812348366
+  },
+  {
+    "epoch": 312,
+    "type": "accepted",
+    "old_grid": 12,
+    "new_grid": 24,
+    "val_loss_before": 0.012432241812348366,
+    "best_trial_val_loss": 0.01079588569700718,
+    "relative_improvement": 0.13162196649970806,
+    "relative_param_growth": 0.75,
+    "efficiency_score": 0.17549595533294407
+  },
+  {
+    "epoch": 392,
+    "type": "trial",
+    "old_grid": 24,
+    "new_grid": 48,
+    "val_loss_before": 0.0053636967204511166
+  },
+  {
+    "epoch": 422,
+    "type": "rejected",
+    "old_grid": 24,
+    "new_grid": 48,
+    "val_loss_before": 0.0053636967204511166,
+    "best_trial_val_loss": 0.0053636967204511166,
+    "relative_improvement": 0.0,
+    "relative_param_growth": 0.8571428571428571,
+    "efficiency_score": 0.0
+  },
+  {
+    "epoch": 461,
+    "type": "blocked",
+    "old_grid": 24,
+    "new_grid": 48,
+    "val_loss_before": 0.0,
+    "best_trial_val_loss": 0.0,
+    "relative_improvement": 0.0,
+    "relative_param_growth": 0.0,
+    "efficiency_score": 0.0
+  }
+]

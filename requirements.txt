@@ -2,3 +2,5 @@ torch>=2.0
 matplotlib>=3.5
 numpy>=1.21
 pytest>=7.0
+fastapi>=0.110
+uvicorn>=0.27

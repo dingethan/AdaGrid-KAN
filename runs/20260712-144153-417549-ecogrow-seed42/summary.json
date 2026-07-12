@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "strategy": "ecogrow",
+  "epochs": 700,
+  "final_grid": 24,
+  "params": 28,
+  "train_mse": 0.01688392646610737,
+  "val_mse": 0.005082287359982729,
+  "best_val_mse": 0.00491231307387352,
+  "test_mse": 0.004969184286892414,
+  "device": "cuda"
+}

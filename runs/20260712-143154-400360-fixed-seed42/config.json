@@ -1,0 +1,18 @@
+{
+  "strategy": "fixed",
+  "epochs": 2,
+  "seed": 42,
+  "noise_std": 0.15,
+  "train_size": 12,
+  "val_size": 12,
+  "test_size": 16,
+  "initial_grid": 3,
+  "fixed_grid": 4,
+  "max_grid": 50,
+  "patience": 8,
+  "lr": 0.03,
+  "weight_decay": 1e-05,
+  "trial_epochs": 30,
+  "min_improvement": 0.01,
+  "min_efficiency": 0.05
+}

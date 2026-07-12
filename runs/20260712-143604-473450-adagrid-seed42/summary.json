@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "strategy": "adagrid",
+  "epochs": 700,
+  "final_grid": 50,
+  "params": 54,
+  "train_mse": 0.01348898746073246,
+  "val_mse": 0.00857918243855238,
+  "best_val_mse": 0.005365697201341391,
+  "test_mse": 0.00829345267266035,
+  "device": "cuda"
+}

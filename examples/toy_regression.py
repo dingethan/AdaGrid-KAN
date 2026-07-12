@@ -42,16 +42,18 @@ print(f"AdaGrid: G={INITIAL_GRID} → {MAX_GRID}, Patience={PATIENCE}")
 def target_function(x):
     return torch.sin(5 * x) + 0.5 * torch.cos(15 * x)
 
-
+# 1. Generate training and testing data 
 x_train = torch.linspace(-1, 1, 200).unsqueeze(1)
 y_train = target_function(x_train)
-x_test = torch.linspace(-1, 1, 500).unsqueeze(1)
+x_test = torch.linspace(-1,  1, 500).unsqueeze(1)
 y_test = target_function(x_test)
 
+# 2. Build model, scheduler, optimizer, and loss function
 model = DynamicKANLayer(
     in_dim=1, out_dim=1, grid_size=INITIAL_GRID,
     spline_order=3, grid_range=(-1.0, 1.0),
 ).to(DEVICE)
+
 
 scheduler = ExtendGridOnPlateau(
     model, patience=PATIENCE, max_grid=MAX_GRID,

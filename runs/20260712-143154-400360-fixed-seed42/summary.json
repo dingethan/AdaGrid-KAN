@@ -1,0 +1,12 @@
+{
+  "status": "completed",
+  "strategy": "fixed",
+  "epochs": 2,
+  "final_grid": 4,
+  "params": 8,
+  "train_mse": 0.7340373396873474,
+  "val_mse": 0.677473247051239,
+  "best_val_mse": 0.677473247051239,
+  "test_mse": 0.6585533618927002,
+  "device": "cuda"
+}

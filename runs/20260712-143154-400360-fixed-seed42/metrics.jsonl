@@ -1,0 +1,2 @@
+{"epoch": 1, "train_loss": 0.7820557355880737, "val_loss": 0.700485110282898, "grid": 4, "params": 8}
+{"epoch": 2, "train_loss": 0.7577227354049683, "val_loss": 0.677473247051239, "grid": 4, "params": 8}

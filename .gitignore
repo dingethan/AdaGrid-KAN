@@ -4,3 +4,12 @@ __pycache__/
 *.egg-info/
 .venv/
 venv/
+
+
+tmp
+docs/course-report-assets
+docs/~$aGrid-KAN课程设计报告-最终版.docx
+docs/AdaGrid-KAN课程设计报告-最终版.docx
+docs/AdaGrid-KAN课程设计报告.md
+docs/AdaGrid-KAN课程设计报告.docx
+docs/~$aGrid-KAN课程设计报告.docx

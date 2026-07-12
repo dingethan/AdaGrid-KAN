@@ -1,0 +1,32 @@
+[
+  {
+    "epoch": 81,
+    "type": "accepted",
+    "old_grid": 3,
+    "new_grid": 6
+  },
+  {
+    "epoch": 133,
+    "type": "accepted",
+    "old_grid": 6,
+    "new_grid": 12
+  },
+  {
+    "epoch": 267,
+    "type": "accepted",
+    "old_grid": 12,
+    "new_grid": 24
+  },
+  {
+    "epoch": 377,
+    "type": "accepted",
+    "old_grid": 24,
+    "new_grid": 48
+  },
+  {
+    "epoch": 442,
+    "type": "accepted",
+    "old_grid": 48,
+    "new_grid": 50
+  }
+]
